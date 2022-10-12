@@ -54,6 +54,8 @@ mod queue_type;
 #[cfg(feature = "search-indexer")]
 pub mod search_indexer;
 mod serialize;
+#[cfg(feature = "fungible-indexer")]
+pub mod fungible_indexer;
 #[cfg(feature = "suffix")]
 pub mod suffix;
 

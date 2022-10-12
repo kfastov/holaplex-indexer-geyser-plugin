@@ -21,6 +21,7 @@ http-indexer = ["solana-program", "suffix"]
 job-runner = []
 producer = ["suffix"]
 search-indexer = ["serde_json", "solana-program", "suffix"]
+fungible-indexer = ["solana-program", "suffix"]
 suffix = ["clap"]
 
 [dependencies]
