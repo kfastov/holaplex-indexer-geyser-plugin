@@ -25,6 +25,30 @@ pub enum Message {
         /// Amount of tokens in the account
         amount: u64,
     },
+    /// Fungible token mint account update
+    FungibleMintAccountUpdate {
+        /// Mint address
+        mint: Pubkey,
+        /// Mint authority
+        authority: Pubkey,
+        /// Mint decimals
+        decimals: u8,
+        /// Mint supply
+        supply: u64,
+    },
+    /// Fungible token MPL metadata account update
+    FungibleMetadataUpdate {
+        /// Metadata address
+        address: Pubkey,
+        /// Mint address
+        mint: Pubkey,
+        /// Metadata name
+        name: String,
+        /// Metadata symbol
+        symbol: String,
+        /// Metadata URI
+        uri: String,
+    },
 }
 
 /// AMQP configuration for fungible indexers
