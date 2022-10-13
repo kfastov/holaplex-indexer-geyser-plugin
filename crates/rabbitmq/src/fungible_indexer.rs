@@ -30,7 +30,7 @@ pub enum Message {
         /// Mint address
         mint: Pubkey,
         /// Mint authority
-        authority: Pubkey,
+        authority: Option<Pubkey>,
         /// Mint decimals
         decimals: u8,
         /// Mint supply
