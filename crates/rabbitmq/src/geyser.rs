@@ -35,6 +35,16 @@ pub struct AccountUpdate {
     pub is_startup: bool,
 }
 
+/// The index of an instruction in a transaction
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum InstructionIndex {
+    /// This instruction was included directly in the transaction message
+    TopLevel(usize),
+    /// This is a sub-instruction whose index is represented as
+    /// `(parent, child)`
+    Inner(u8, usize),
+}
+
 /// Message data for an instruction notification
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstructionNotify {
@@ -47,6 +57,31 @@ pub struct InstructionNotify {
     /// The slot in which the transaction including this instruction was
     /// reported
     pub slot: u64,
+    /// Signature of the transaction enclosing this instruction
+    pub txn_signature: Vec<u8>,
+    /// The index of this instruction, and if it is a sub-inst
+    pub index: InstructionIndex,
+}
+
+/// Solana slot status, corresponding to the Geyser interface's enumeration of
+/// the same name.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[allow(missing_docs)]
+pub enum SlotStatus {
+    Processed,
+    Rooted,
+    Confirmed,
+}
+
+/// Message data for a block status update
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct SlotStatusUpdate {
+    /// The number of the slot that was updated
+    pub slot: u64,
+    /// The parent of the slot
+    pub parent: Option<u64>,
+    /// The status of the slot
+    pub status: SlotStatus,
 }
 
 /// A message transmitted by a Geyser plugin
@@ -56,6 +91,8 @@ pub enum Message {
     AccountUpdate(AccountUpdate),
     /// Indicates an instruction was included in a **successful** transaction
     InstructionNotify(InstructionNotify),
+    /// Indicates the status of a slot changed
+    SlotStatusUpdate(SlotStatusUpdate),
 }
 
 /// AMQP configuration for Geyser plugins
@@ -124,10 +161,10 @@ impl QueueType {
                 queue,
                 binding: Binding::Fanout,
                 prefetch: 4096,
-                max_len_bytes: if suffix.is_debug() || matches!(startup_type, StartupType::Normal) {
-                    512 * 1024 * 1024 // 512 MiB
-                } else {
-                    12 * 1024 * 1024 * 1024 // 12 GiB
+                max_len_bytes: match (suffix.is_debug(), startup_type) {
+                    (true, _) => 100 * 1024 * 1024,                         // 100 MiB
+                    (false, StartupType::Normal) => 4 * 1024 * 1024 * 1024, // 4 GiB
+                    (false, _) => 50 * 1024 * 1024 * 1024,                  // 50 GiB
                 },
                 auto_delete: suffix.is_debug(),
                 retry: Some(RetryProps {
